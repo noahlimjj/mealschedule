@@ -1,11 +1,11 @@
-export const getWeekDates = (): Date[] => {
+export const getWeekDates = (weekOffset: number = 0): Date[] => {
   const today = new Date();
   const currentDay = today.getDay(); // 0 = Sunday, 1 = Monday, etc.
 
   // Calculate the most recent Monday
   const daysFromMonday = currentDay === 0 ? 6 : currentDay - 1; // If Sunday, go back 6 days
   const monday = new Date(today);
-  monday.setDate(today.getDate() - daysFromMonday);
+  monday.setDate(today.getDate() - daysFromMonday + (weekOffset * 7));
   monday.setHours(0, 0, 0, 0);
 
   // Generate 8 days (Monday to next Monday)
@@ -17,6 +17,23 @@ export const getWeekDates = (): Date[] => {
   }
 
   return dates;
+};
+
+export const getWeekRange = (weekOffset: number = 0): string => {
+  const dates = getWeekDates(weekOffset);
+  const firstDay = dates[0];
+  const lastDay = dates[dates.length - 1];
+
+  const firstMonth = firstDay.toLocaleDateString('en-US', { month: 'short' });
+  const lastMonth = lastDay.toLocaleDateString('en-US', { month: 'short' });
+  const firstDate = firstDay.getDate();
+  const lastDate = lastDay.getDate();
+
+  if (firstMonth === lastMonth) {
+    return `${firstMonth} ${firstDate}-${lastDate}`;
+  } else {
+    return `${firstMonth} ${firstDate} - ${lastMonth} ${lastDate}`;
+  }
 };
 
 export const formatDate = (date: Date): string => {

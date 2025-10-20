@@ -12,11 +12,11 @@ interface MealContextType {
   appData: AppData;
   currentGroup: Group | null;
   currentUser: User | null;
-  createGroup: (name: string, userName: string) => Promise<void>;
-  addUserToGroup: (userName: string) => Promise<void>;
+  addUser: (userName: string) => Promise<void>;
   setCurrentUser: (userId: string) => void;
   toggleMeal: (date: string, mealType: 'lunch' | 'dinner') => Promise<void>;
   getUserMealStatus: (userId: string, date: string) => MealStatus;
+  getMealCount: (date: string, mealType: 'lunch' | 'dinner') => { count: number; total: number };
   useFirebase: boolean;
 }
 
@@ -37,16 +37,53 @@ const USER_COLORS = [
   '#14B8A6', // teal
 ];
 
+const DEFAULT_GROUP_ID = 'default_group';
+
 const getInitialData = (): AppData => {
   const stored = localStorage.getItem(STORAGE_KEY);
   if (stored) {
     try {
-      return JSON.parse(stored);
+      const data = JSON.parse(stored);
+      // Ensure default group exists
+      if (!data.groups[DEFAULT_GROUP_ID]) {
+        data.groups[DEFAULT_GROUP_ID] = {
+          id: DEFAULT_GROUP_ID,
+          name: 'My Group',
+          users: [],
+          meals: {},
+        };
+        data.currentGroupId = DEFAULT_GROUP_ID;
+      }
+      return data;
     } catch {
-      return { groups: {}, currentGroupId: null, currentUserId: null };
+      // Create default group
+      return {
+        groups: {
+          [DEFAULT_GROUP_ID]: {
+            id: DEFAULT_GROUP_ID,
+            name: 'My Group',
+            users: [],
+            meals: {},
+          },
+        },
+        currentGroupId: DEFAULT_GROUP_ID,
+        currentUserId: null,
+      };
     }
   }
-  return { groups: {}, currentGroupId: null, currentUserId: null };
+  // Create default group for new users
+  return {
+    groups: {
+      [DEFAULT_GROUP_ID]: {
+        id: DEFAULT_GROUP_ID,
+        name: 'My Group',
+        users: [],
+        meals: {},
+      },
+    },
+    currentGroupId: DEFAULT_GROUP_ID,
+    currentUserId: null,
+  };
 };
 
 // Check if Firebase is configured
@@ -93,42 +130,7 @@ export const MealProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     ? currentGroup.users.find(u => u.id === appData.currentUserId) || null
     : null;
 
-  const createGroup = async (name: string, userName: string) => {
-    const groupId = `group_${Date.now()}`;
-    const userId = `user_${Date.now()}`;
-
-    const newUser: User = {
-      id: userId,
-      name: userName,
-      color: USER_COLORS[0],
-    };
-
-    const newGroup: Group = {
-      id: groupId,
-      name,
-      users: [newUser],
-      meals: {
-        [userId]: {},
-      },
-    };
-
-    if (useFirebase) {
-      // Save to Firebase
-      await createGroupFirestore(newGroup);
-    }
-
-    // Update local state
-    setAppData({
-      groups: {
-        ...appData.groups,
-        [groupId]: newGroup,
-      },
-      currentGroupId: groupId,
-      currentUserId: userId,
-    });
-  };
-
-  const addUserToGroup = async (userName: string) => {
+  const addUser = async (userName: string) => {
     if (!currentGroup) return;
     if (currentGroup.users.length >= 10) {
       alert('Maximum 10 users per group reached');
@@ -164,6 +166,14 @@ export const MealProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
           ...appData.groups,
           [currentGroup.id]: updatedGroup,
         },
+      });
+    }
+
+    // Auto-select first user if none selected
+    if (!appData.currentUserId) {
+      setAppData({
+        ...appData,
+        currentUserId: userId,
       });
     }
   };
@@ -218,17 +228,33 @@ export const MealProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     return userMeals[date] || { lunch: false, dinner: false };
   };
 
+  const getMealCount = (date: string, mealType: 'lunch' | 'dinner'): { count: number; total: number } => {
+    if (!currentGroup) return { count: 0, total: 0 };
+
+    const total = currentGroup.users.length;
+    let count = 0;
+
+    currentGroup.users.forEach(user => {
+      const mealStatus = getUserMealStatus(user.id, date);
+      if (mealStatus[mealType]) {
+        count++;
+      }
+    });
+
+    return { count, total };
+  };
+
   return (
     <MealContext.Provider
       value={{
         appData,
         currentGroup,
         currentUser,
-        createGroup,
-        addUserToGroup,
+        addUser,
         setCurrentUser,
         toggleMeal,
         getUserMealStatus,
+        getMealCount,
         useFirebase,
       }}
     >
