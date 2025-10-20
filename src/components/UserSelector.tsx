@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { useMeal } from '../context/MealContext';
+import { useMeal } from '../context/MealContextFirebase';
 
 const UserSelector: React.FC = () => {
   const { currentGroup, currentUser, setCurrentUser, addUserToGroup } = useMeal();

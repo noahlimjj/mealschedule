@@ -1,4 +1,4 @@
-import { useMeal } from './context/MealContext';
+import { useMeal } from './context/MealContextFirebase';
 import GroupSetup from './components/GroupSetup';
 import UserSelector from './components/UserSelector';
 import MealGrid from './components/MealGrid';

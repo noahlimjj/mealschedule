@@ -1,5 +1,5 @@
 import React from 'react';
-import { useMeal } from '../context/MealContext';
+import { useMeal } from '../context/MealContextFirebase';
 import { getWeekDates, formatDate, formatDisplayDate, isToday } from '../utils/dateUtils';
 
 const MealGrid: React.FC = () => {
