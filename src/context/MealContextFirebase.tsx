@@ -1,5 +1,6 @@
-import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
-import { AppData, Group, User, MealStatus } from '../types';
+import React, { createContext, useContext, useState, useEffect } from 'react';
+import type { ReactNode } from 'react';
+import type { AppData, Group, User, MealStatus } from '../types';
 import {
   createGroup as createGroupFirestore,
   addUserToGroup as addUserToGroupFirestore,

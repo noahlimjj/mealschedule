@@ -1,14 +1,13 @@
 import {
-  collection,
   doc,
   setDoc,
   getDoc,
   updateDoc,
   onSnapshot,
-  Unsubscribe,
 } from 'firebase/firestore';
+import type { Unsubscribe } from 'firebase/firestore';
 import { db } from './config';
-import { Group, User, MealStatus } from '../types';
+import type { Group, User, MealStatus } from '../types';
 
 // Collection reference
 const GROUPS_COLLECTION = 'groups';
