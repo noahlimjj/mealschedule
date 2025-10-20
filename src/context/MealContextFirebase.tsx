@@ -2,7 +2,6 @@ import React, { createContext, useContext, useState, useEffect } from 'react';
 import type { ReactNode } from 'react';
 import type { AppData, Group, User, MealStatus } from '../types';
 import {
-  createGroup as createGroupFirestore,
   addUserToGroup as addUserToGroupFirestore,
   toggleUserMeal,
   subscribeToGroup,
